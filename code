@@ -1,0 +1,33 @@
+
+import pandas as pd
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import requests
+from selenium.common.exceptions import NoSuchElementException
+
+driver=webdriver.Chrome('f:/chromedriver.exe')
+driver.get('http://kanview.ks.gov/PayRates/PayRates_Agency.aspx')
+j=0
+while True:
+    try:
+        driver.find_element_by_id('MainContent_uxLevel1_Agencies_uxAgencyBtn_'+str(j)).click()
+        dataframe_list=[]
+        i=0
+        while True:
+            try:
+                driver.find_element_by_id('MainContent_uxLevel2_JobTitles_uxJobTitleBtn_'+str(i)).click()
+                data=BeautifulSoup(driver.page_source)
+                table=data.table
+                df=pd.read_html(str(table), header=0)
+                dataframe_list.append(df[0])
+                driver.back()
+                i+=1
+            except NoSuchElementException:
+                break
+        dff=pd.concat(dataframe_list, sort=True)
+        dff.reset_index(drop=True, inplace=True)
+        print('Success')
+        driver.back()
+        j+=1
+    except NoSuchElementException:
+        break
